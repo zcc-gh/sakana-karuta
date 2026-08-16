@@ -46,6 +46,7 @@ const GENDER_NAMES = {
   },
 };
 const VOLUME = { intro: 0.78, name: 1, hint: 1 };
+const RATE = { intro: 0.89, name: 0.81, hint: 0.89 };
 let voices = [];
 
 function loadVoices() {
@@ -89,6 +90,24 @@ const state = {
 
 let seqToken = 0;
 let motionBound = false;
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    if ("wakeLock" in navigator) {
+      wakeLock = await navigator.wakeLock.request("screen");
+    }
+  } catch (error) {}
+}
+
+async function releaseWakeLock() {
+  try {
+    if (wakeLock) {
+      await wakeLock.release();
+      wakeLock = null;
+    }
+  } catch (error) {}
+}
 
 function showScreen(screen) {
   screens.forEach((item) => item.classList.toggle("hidden", item !== screen));
@@ -114,7 +133,7 @@ function speak(text, type = "hint") {
   if (chosenVoice) utterance.voice = chosenVoice;
   utterance.lang = chosenVoice?.lang || (state.language === "zh" ? "zh-CN" : "ja-JP");
   utterance.volume = VOLUME[type] ?? 1;
-  utterance.rate = .85;
+  utterance.rate = RATE[type] ?? .85;
   window.speechSynthesis.speak(utterance);
 }
 
@@ -129,7 +148,7 @@ function speakThen(text, type, onDone) {
   if (chosenVoice) utterance.voice = chosenVoice;
   utterance.lang = chosenVoice?.lang || (state.language === "zh" ? "zh-CN" : "ja-JP");
   utterance.volume = VOLUME[type] ?? 1;
-  utterance.rate = .85;
+  utterance.rate = RATE[type] ?? .85;
   let settled = false;
   const finish = () => {
     if (settled) return;
@@ -242,13 +261,14 @@ function startGame() {
   $("readerStage").classList.remove("is-paused");
   $("pauseButton").textContent = "Ⅱ";
   $("languageLabel").textContent = state.language === "zh" ? "中文读牌" : "日本語の読み上げ";
-  $("pauseInstruction").textContent = "翻转手机暂停 · 点击屏幕中央出提示";
+  setActiveInstruction();
   $("readerMessage").textContent = "准备朗读…";
   $("hintMessage").hidden = true;
   $("nextCard").classList.toggle("hidden", state.mode === "teach");
   clearInterval(state.countdown);
   state.countdown = setInterval(updateCountdown, 250);
   showScreen($("gameScreen"));
+  requestWakeLock();
 
   const introText = state.language === "zh" ? "开始了哦" : "はじまるよ";
   state.step = -1;
@@ -281,7 +301,7 @@ function resume() {
   seqToken += 1;
   const token = seqToken;
   $("readerStage").classList.remove("is-paused");
-  $("pauseInstruction").textContent = "翻转手机暂停 · 点击屏幕中央出提示";
+  setActiveInstruction();
   $("pauseButton").textContent = "Ⅱ";
 
   if (state.step === -1) {
@@ -324,6 +344,7 @@ function finishGame() {
   clearInterval(state.countdown);
   state.countdown = null;
   stopSpeech();
+  releaseWakeLock();
   showScreen($("completeScreen"));
 }
 
@@ -334,6 +355,7 @@ function endGame() {
   clearInterval(state.countdown);
   state.countdown = null;
   stopSpeech();
+  releaseWakeLock();
   showScreen($("modeScreen"));
 }
 
@@ -357,6 +379,26 @@ function freeTapHint() {
   state.step = 1;
   state.stepType = "gap";
   gapStep(seqToken, state.interval * 1000, () => advance(seqToken));
+}
+
+function setActiveInstruction() {
+  $("pauseInstruction").textContent = state.mode === "teach"
+    ? "翻转手机暂停 · 点击屏幕中央跳过当前牌"
+    : "翻转手机暂停 · 点击屏幕中央出提示";
+}
+
+function skipTeach() {
+  if (state.paused || state.mode !== "teach") return;
+  seqToken += 1;
+  const token = seqToken;
+  if (state.step === -1) startCard(token);
+  else advance(token);
+}
+
+function handleStageTap() {
+  if (state.paused) return;
+  if (state.mode === "free") freeTapHint();
+  else skipTeach();
 }
 
 async function requestMotionPermission() {
@@ -421,11 +463,11 @@ $("repeatButton").addEventListener("click", () => {
 });
 
 $("pauseButton").addEventListener("click", togglePauseButton);
-$("readerStage").addEventListener("click", freeTapHint);
+$("readerStage").addEventListener("click", handleStageTap);
 $("readerStage").addEventListener("keydown", (event) => {
   if (event.key === "Enter" || event.key === " ") {
     event.preventDefault();
-    freeTapHint();
+    handleStageTap();
   }
 });
 
@@ -454,3 +496,9 @@ $("confirmQuitButton").addEventListener("click", () => {
 });
 
 $("backToSettingsButton").addEventListener("click", () => showScreen($("modeScreen")));
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && !$("gameScreen").classList.contains("hidden")) {
+    requestWakeLock();
+  }
+});
