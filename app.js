@@ -35,11 +35,35 @@ if (typeof cardHints !== "undefined") {
 
 const $ = (id) => document.getElementById(id);
 const screens = [$("modeScreen"), $("languageScreen"), $("speedScreen"), $("gameScreen"), $("completeScreen")];
-const voiceNames = {
-  ja: { male: "Hattori", female: "O-Ren" },
-  zh: { male: "Li-Mu", female: "莉莉" },
+const GENDER_NAMES = {
+  ja: {
+    male: ["hattori", "otoya", "kyota", "kenji", "takeshi", "shinji", "yuuji"],
+    female: ["o-ren", "kyoko"],
+  },
+  zh: {
+    male: ["li-mu", "yu-shu", "sin-ji", "feng"],
+    female: ["ting-ting", "mei-jia", "lili", "莉莉"],
+  },
 };
 const VOLUME = { intro: 0.78, name: 1, hint: 1 };
+let voices = [];
+
+function loadVoices() {
+  if (window.speechSynthesis) voices = window.speechSynthesis.getVoices();
+}
+
+function pickVoice(language, gender) {
+  const prefix = language === "zh" ? "zh" : "ja";
+  const byLang = voices.filter((voice) => (voice.lang || "").toLowerCase().startsWith(prefix));
+  if (byLang.length === 0) return null;
+  const keywords = GENDER_NAMES[language][gender] || [];
+  return byLang.find((voice) => keywords.some((key) => (voice.name || "").toLowerCase().includes(key))) || byLang[0];
+}
+
+if (window.speechSynthesis) {
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
 
 const state = {
   deck: [],
@@ -86,10 +110,10 @@ function speak(text, type = "hint") {
   if (!window.speechSynthesis) return;
   stopSpeech();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = state.language === "zh" ? "zh-CN" : "ja-JP";
-  utterance.volume = VOLUME[type] ?? 1;
-  const chosenVoice = window.speechSynthesis.getVoices().find((voice) => voice.name === state.voiceName);
+  const chosenVoice = pickVoice(state.language, state.gender);
   if (chosenVoice) utterance.voice = chosenVoice;
+  utterance.lang = chosenVoice?.lang || (state.language === "zh" ? "zh-CN" : "ja-JP");
+  utterance.volume = VOLUME[type] ?? 1;
   utterance.rate = .85;
   window.speechSynthesis.speak(utterance);
 }
@@ -101,10 +125,10 @@ function speakThen(text, type, onDone) {
   }
   stopSpeech();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = state.language === "zh" ? "zh-CN" : "ja-JP";
-  utterance.volume = VOLUME[type] ?? 1;
-  const chosenVoice = window.speechSynthesis.getVoices().find((voice) => voice.name === state.voiceName);
+  const chosenVoice = pickVoice(state.language, state.gender);
   if (chosenVoice) utterance.voice = chosenVoice;
+  utterance.lang = chosenVoice?.lang || (state.language === "zh" ? "zh-CN" : "ja-JP");
+  utterance.volume = VOLUME[type] ?? 1;
   utterance.rate = .85;
   let settled = false;
   const finish = () => {
@@ -204,7 +228,7 @@ function startGame() {
   state.language = document.querySelector('input[name="language"]:checked').value;
   state.gender = document.querySelector('input[name="gender"]:checked').value;
   state.interval = Number(document.querySelector('input[name="interval"]:checked').value);
-  state.voiceName = voiceNames[state.language][state.gender];
+  loadVoices();
   state.deck = shuffle(cards);
   state.index = 0;
   state.hintIndex = 0;
