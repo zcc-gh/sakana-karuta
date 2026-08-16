@@ -66,6 +66,32 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--spot-tint);
   letter-spacing: .02em;
 }
 
+#modeScreen,
+#languageScreen,
+#speedScreen {
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#modeScreen {
+  min-height: calc(100svh - 58px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+
+#modeScreen .brand {
+  margin-top: calc(15svh - 30px - env(safe-area-inset-top));
+}
+
+#modeScreen .official-link {
+  margin-top: auto;
+  margin-bottom: calc(5svh - 28px - env(safe-area-inset-bottom));
+}
+
+#languageScreen h1,
+#speedScreen h1 {
+  margin-top: calc(15svh + 68px);
+}
+
 .settings-card {
   padding: 18px;
   border: 1px solid var(--spot);
@@ -319,7 +345,8 @@ legend {
 .pause-instruction {
   margin: 22px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 20px;
+  line-height: 1.4;
 }
 
 .reader-stage.is-paused .pause-instruction {
