@@ -25,6 +25,7 @@ const cards = [
   { zh: "香鱼", ja: "アユ", hintZh: "", hintJa: "" },
   { zh: "黑鲫", ja: "フナ", hintZh: "", hintJa: "" },
 ];
+cards.forEach((card) => { const hints = cardHints[card.zh]; card.hintZh = hints?.zh || []; card.hintJa = hints?.ja || []; });
 
 const $ = (id) => document.getElementById(id);
 const screens = [$("setupScreen"), $("speedScreen"), $("gameScreen"), $("completeScreen")];
@@ -32,7 +33,7 @@ const voiceNames = {
   ja: { male: "Hattori", female: "O-Ren" },
   zh: { male: "Li-Mu", female: "莉莉" },
 };
-const state = { deck: [], index: 0, language: "zh", gender: "male", interval: 5, hints: false, voiceName: "", paused: false, remaining: 0, timeout: null, countdown: null, nextAt: 0 };
+const state = { deck: [], index: 0, language: "zh", gender: "male", interval: 5, hints: false, hintIndex: 0, voiceName: "", paused: false, remaining: 0, timeout: null, countdown: null, nextAt: 0 };
 
 function showScreen(screen) { screens.forEach((item) => item.classList.toggle("hidden", item !== screen)); }
 function shuffle(list) { return [...list].sort(() => Math.random() - 0.5); }
@@ -87,6 +88,7 @@ function readCurrent() {
   $("currentNumber").textContent = state.index + 1;
   $("readerMessage").textContent = "请听读牌";
   $("hintMessage").hidden = true;
+  state.hintIndex = 0;
   speak(name);
   scheduleNext();
 }
@@ -97,19 +99,23 @@ function startGame() {
   state.interval = Number(document.querySelector('input[name="interval"]:checked').value);
   state.hints = $("hintsEnabled").checked;
   state.voiceName = voiceNames[state.language][state.gender];
-  state.deck = shuffle(cards); state.index = 0;
+  state.deck = shuffle(cards); state.index = 0; state.hintIndex = 0;
   state.paused = false; state.remaining = 0;
   $("readerStage").classList.remove("is-paused");
   $("pauseInstruction").textContent = "点击屏幕暂停";
   $("languageLabel").textContent = state.language === "zh" ? "中文读牌" : "日本語の読み上げ";
   $("hintButton").disabled = !state.hints;
   $("hintButton").style.opacity = state.hints ? "1" : ".42";
-  showScreen($("gameScreen")); readCurrent();
+  showScreen($("gameScreen"));
+  $("readerMessage").textContent = state.language === "zh" ? "开始了哦" : "はじまるよ";
+  speak(state.language === "zh" ? "开始了哦" : "はじまるよ");
+  state.timeout = setTimeout(readCurrent, 3000);
 }
 function finishGame() { clearSchedule(); showScreen($("completeScreen")); }
 function showHint() {
-  const card = state.deck[state.index]; const hint = state.language === "zh" ? card.hintZh : card.hintJa;
-  const message = hint || (state.language === "zh" ? "这张牌的提示尚未录入。" : "この札のヒントは、まだ登録されていません。");
+  const card = state.deck[state.index]; const hints = state.language === "zh" ? card.hintZh : card.hintJa;
+  const hint = hints[state.hintIndex++];
+  const message = hint || (state.language === "zh" ? "三条提示都已给出。" : "ヒントはすべて出しました。");
   $("hintMessage").textContent = message; $("hintMessage").hidden = false;
   if (hint) speak(hint);
 }
