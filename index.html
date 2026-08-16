@@ -3,15 +3,53 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#082f38" />
+    <meta name="theme-color" content="#2E6B9E" />
     <title>さかなかるた · 读手</title>
-    <link rel="stylesheet" href="styles.css?v=3" />
+    <link rel="stylesheet" href="styles.css?v=4" />
   </head>
   <body>
+    <svg aria-hidden="true" style="display:none">
+      <symbol id="scales3" viewBox="0 0 48 48">
+        <circle cx="24" cy="16" r="12" fill="currentColor" fill-opacity=".16" />
+        <circle cx="14" cy="29" r="12" fill="currentColor" fill-opacity=".16" />
+        <circle cx="34" cy="29" r="12" fill="currentColor" fill-opacity=".16" />
+        <circle cx="24" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="1.5" />
+        <circle cx="14" cy="29" r="12" fill="none" stroke="currentColor" stroke-width="1.5" />
+        <circle cx="34" cy="29" r="12" fill="none" stroke="currentColor" stroke-width="1.5" />
+      </symbol>
+    </svg>
+
     <main class="app-shell">
-      <section class="setup screen" id="setupScreen" aria-labelledby="setupTitle">
-        <div class="brand-mark" aria-hidden="true">さかな<br>かるた</div>
-        <h1 id="setupTitle">选择语言</h1>
+      <section class="screen" id="modeScreen" aria-labelledby="modeTitle">
+        <div class="brand">
+          <svg class="brand-mark" aria-hidden="true"><use href="#scales3" /></svg>
+          <div class="brand-word">さかなかるた<br />読手</div>
+        </div>
+        <h1 id="modeTitle">选择模式</h1>
+        <div class="settings-card">
+          <fieldset>
+            <div class="mode-grid">
+              <label class="choice mode-choice selected">
+                <input type="radio" name="mode" value="teach" checked />
+                <svg class="scale-icon" aria-hidden="true"><use href="#scales3" /></svg>
+                <strong>教学模式</strong>
+                <span>读出鱼名后，自动朗读三条提示</span>
+              </label>
+              <label class="choice mode-choice">
+                <input type="radio" name="mode" value="free" />
+                <svg class="scale-icon" aria-hidden="true"><use href="#scales3" /></svg>
+                <strong>自由模式</strong>
+                <span>点击屏幕中央，一次读一条提示</span>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+        <button class="primary-button" id="toLanguageButton" type="button">下一步</button>
+        <a class="official-link" href="https://sakanakaruta.theshop.jp" target="_blank" rel="noreferrer">访问官网 <span aria-hidden="true">↗</span></a>
+      </section>
+
+      <section class="screen hidden" id="languageScreen" aria-labelledby="languageTitle">
+        <h1 id="languageTitle">选择语言</h1>
         <div class="settings-card language-card">
           <fieldset>
             <div class="choice-grid">
@@ -25,7 +63,7 @@
               </label>
             </div>
           </fieldset>
-          <fieldset class="voice-choice-fieldset" aria-label="声音类型">
+          <fieldset class="sub-fieldset">
             <div class="choice-grid">
               <label class="choice selected">
                 <input type="radio" name="gender" value="male" checked />
@@ -39,25 +77,32 @@
           </fieldset>
         </div>
         <button class="primary-button" id="toSpeedButton" type="button">下一步</button>
-        <a class="official-link" href="https://sakanakaruta.theshop.jp" target="_blank" rel="noreferrer">访问官网 <span aria-hidden="true">↗</span></a>
+        <button class="text-button back-button" id="backToModeButton" type="button">返回</button>
       </section>
 
-      <section class="setup screen hidden" id="speedScreen" aria-labelledby="speedTitle">
+      <section class="screen hidden" id="speedScreen" aria-labelledby="speedTitle">
         <h1 id="speedTitle">选择速度</h1>
         <div class="settings-card">
           <fieldset>
             <legend>读牌间隔</legend>
             <div class="speed-grid">
-              <label class="speed-choice"><input type="radio" name="interval" value="7" /><strong>慢</strong><span>7 秒</span></label>
-              <label class="speed-choice selected"><input type="radio" name="interval" value="5" checked /><strong>中</strong><span>5 秒</span></label>
-              <label class="speed-choice"><input type="radio" name="interval" value="3" /><strong>快</strong><span>3 秒</span></label>
+              <label class="speed-choice">
+                <input type="radio" name="interval" value="7" />
+                <strong>慢</strong>
+                <span>7 秒</span>
+              </label>
+              <label class="speed-choice selected">
+                <input type="radio" name="interval" value="5" checked />
+                <strong>中</strong>
+                <span>5 秒</span>
+              </label>
+              <label class="speed-choice">
+                <input type="radio" name="interval" value="3" />
+                <strong>快</strong>
+                <span>3 秒</span>
+              </label>
             </div>
           </fieldset>
-
-          <label class="toggle-row" for="hintsEnabled">
-            <span><strong>允许提示</strong><small>游戏中可自行请求提示</small></span>
-            <input id="hintsEnabled" type="checkbox" role="switch" />
-          </label>
         </div>
         <button class="primary-button" id="startButton" type="button">开始读牌</button>
         <button class="text-button back-button" id="backToLanguageButton" type="button">返回</button>
@@ -69,38 +114,41 @@
             <p class="eyebrow" id="languageLabel">中文读牌</p>
             <p class="progress"><span id="currentNumber">1</span> <span>/ 24</span></p>
           </div>
-          <button class="text-button" id="quitButton" type="button">退出</button>
+          <div class="header-actions">
+            <button class="icon-button" id="pauseButton" type="button" aria-label="暂停">Ⅱ</button>
+            <button class="text-button" id="quitButton" type="button">退出</button>
+          </div>
         </header>
 
-        <div class="reader-stage" id="readerStage" role="button" tabindex="0" aria-label="点击暂停读牌">
-          <div class="fish-mark" aria-hidden="true">🐟</div>
+        <div class="reader-stage" id="readerStage" role="button" tabindex="0">
+          <svg class="fish-scale-mark" aria-hidden="true"><use href="#scales3" /></svg>
           <div class="pause-overlay" id="pauseOverlay" aria-hidden="true">Ⅱ</div>
-          <p class="now-reading">正在读牌</p>
+          <p class="now-reading" id="nowReading">正在读牌</p>
           <p class="reader-message" id="readerMessage">准备朗读…</p>
+          <p class="hint-message" id="hintMessage" hidden></p>
           <div class="next-card">
-            <span>下一张将在</span>
+            <span>接下来将在</span>
             <strong id="countdown">—</strong>
             <span>后朗读</span>
           </div>
-          <p class="pause-instruction" id="pauseInstruction">点击屏幕暂停</p>
+          <p class="pause-instruction" id="pauseInstruction">翻转手机暂停 · 点击屏幕中央出提示</p>
         </div>
 
         <div class="game-actions">
           <button class="secondary-button" id="repeatButton" type="button">再读一次</button>
-          <button class="secondary-button" id="hintButton" type="button">给我提示</button>
         </div>
-        <p class="hint-message" id="hintMessage" hidden></p>
       </section>
 
       <section class="complete screen hidden" id="completeScreen">
         <p class="eyebrow">完成</p>
-        <div class="complete-mark" aria-hidden="true">✦</div>
+        <svg class="complete-mark" aria-hidden="true"><use href="#scales3" /></svg>
         <h1>这一局读完了</h1>
         <p>24 张鱼牌都已朗读完毕。</p>
         <button class="primary-button" id="restartButton" type="button">再来一局</button>
         <button class="text-button center-button" id="backToSettingsButton" type="button">返回设置</button>
       </section>
     </main>
+
     <dialog id="quitDialog">
       <h2>结束这一局？</h2>
       <p>当前进度不会保留。</p>
@@ -109,7 +157,8 @@
         <button class="danger-button" id="confirmQuitButton" type="button">退出</button>
       </div>
     </dialog>
-    <script src="hints-data.js?v=3"></script>
-    <script src="app.js?v=3"></script>
+
+    <script src="hints-data.js?v=4"></script>
+    <script src="app.js?v=4"></script>
   </body>
 </html>
