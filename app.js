@@ -25,7 +25,9 @@ const cards = [
   { zh: "香鱼", ja: "アユ", hintZh: "", hintJa: "" },
   { zh: "黑鲫", ja: "フナ", hintZh: "", hintJa: "" },
 ];
-cards.forEach((card) => { const hints = cardHints[card.zh]; card.hintZh = hints?.zh || []; card.hintJa = hints?.ja || []; });
+if (typeof cardHints !== "undefined") {
+  cards.forEach((card) => { const hints = cardHints[card.zh]; card.hintZh = hints?.zh || []; card.hintJa = hints?.ja || []; });
+}
 
 const $ = (id) => document.getElementById(id);
 const screens = [$("setupScreen"), $("speedScreen"), $("gameScreen"), $("completeScreen")];
