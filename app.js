@@ -39,7 +39,7 @@ const voiceNames = {
   ja: { male: "Hattori", female: "O-Ren" },
   zh: { male: "Li-Mu", female: "莉莉" },
 };
-const VOLUME = { intro: 0.55, name: 1, hint: 1 };
+const VOLUME = { intro: 0.78, name: 1, hint: 1 };
 
 const state = {
   deck: [],
