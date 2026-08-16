@@ -39,6 +39,7 @@ const voiceNames = {
   ja: { male: "Hattori", female: "O-Ren" },
   zh: { male: "Li-Mu", female: "莉莉" },
 };
+const VOLUME = { intro: 0.55, name: 1, hint: 1 };
 
 const state = {
   deck: [],
@@ -81,18 +82,19 @@ function cardName(card) {
   return state.language === "zh" ? card.zh : card.ja;
 }
 
-function speak(text) {
+function speak(text, type = "hint") {
   if (!window.speechSynthesis) return;
   stopSpeech();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = state.language === "zh" ? "zh-CN" : "ja-JP";
+  utterance.volume = VOLUME[type] ?? 1;
   const chosenVoice = window.speechSynthesis.getVoices().find((voice) => voice.name === state.voiceName);
   if (chosenVoice) utterance.voice = chosenVoice;
   utterance.rate = .85;
   window.speechSynthesis.speak(utterance);
 }
 
-function speakThen(text, onDone) {
+function speakThen(text, type, onDone) {
   if (!window.speechSynthesis) {
     onDone();
     return;
@@ -100,6 +102,7 @@ function speakThen(text, onDone) {
   stopSpeech();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = state.language === "zh" ? "zh-CN" : "ja-JP";
+  utterance.volume = VOLUME[type] ?? 1;
   const chosenVoice = window.speechSynthesis.getVoices().find((voice) => voice.name === state.voiceName);
   if (chosenVoice) utterance.voice = chosenVoice;
   utterance.rate = .85;
@@ -137,7 +140,7 @@ function hintStep(token, onDone) {
   state.currentText = message;
   $("hintMessage").textContent = message;
   $("hintMessage").hidden = false;
-  speakThen(message, () => {
+  speakThen(message, "hint", () => {
     if (token === seqToken) onDone();
   });
 }
@@ -148,7 +151,7 @@ function runTeachStep(token, step) {
   if (step === 0) {
     state.stepType = "speak";
     state.currentText = cardName(card);
-    speakThen(state.currentText, () => {
+    speakThen(state.currentText, "name", () => {
       if (token === seqToken) runTeachStep(token, 1);
     });
   } else if (step === 1 || step === 3 || step === 5) {
@@ -167,7 +170,7 @@ function runFreeStep(token, step) {
   if (step === 0) {
     state.stepType = "speak";
     state.currentText = cardName(card);
-    speakThen(state.currentText, () => {
+    speakThen(state.currentText, "name", () => {
       if (token === seqToken) runFreeStep(token, 1);
     });
   } else if (step === 1) {
@@ -218,7 +221,7 @@ function startGame() {
   $("pauseInstruction").textContent = "翻转手机暂停 · 点击屏幕中央出提示";
   $("readerMessage").textContent = "准备朗读…";
   $("hintMessage").hidden = true;
-  $("nextCard").hidden = state.mode === "teach";
+  $("nextCard").classList.toggle("hidden", state.mode === "teach");
   clearInterval(state.countdown);
   state.countdown = setInterval(updateCountdown, 250);
   showScreen($("gameScreen"));
@@ -226,7 +229,7 @@ function startGame() {
   const introText = state.language === "zh" ? "开始了哦" : "はじまるよ";
   state.step = -1;
   state.stepType = "gap";
-  speak(introText);
+  speak(introText, "intro");
   gapStep(token, 3000, () => startCard(token));
   requestMotionPermission();
 }
@@ -263,7 +266,7 @@ function resume() {
     gapStep(token, state.gapRemaining, resumeNext(token));
   } else {
     state.currentText = state.currentText || cardName(state.deck[state.index]);
-    speakThen(state.currentText, resumeNext(token));
+    speakThen(state.currentText, state.stepType === "hint" ? "hint" : "name", resumeNext(token));
   }
 }
 
@@ -325,7 +328,7 @@ function freeTapHint() {
   if (hint) state.hintIndex += 1;
   $("hintMessage").textContent = message;
   $("hintMessage").hidden = false;
-  speak(message);
+  speak(message, "hint");
 
   state.step = 1;
   state.stepType = "gap";
