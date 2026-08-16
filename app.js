@@ -117,7 +117,7 @@ function showHint() {
   const hint = hints[state.hintIndex++];
   const message = hint || (state.language === "zh" ? "三条提示都已给出。" : "ヒントはすべて出しました。");
   $("hintMessage").textContent = message; $("hintMessage").hidden = false;
-  if (hint) speak(hint);
+  speak(message);
 }
 
 document.querySelectorAll('input[name="language"]').forEach((input) => input.addEventListener("change", () => document.querySelectorAll(".choice").forEach((choice) => choice.classList.toggle("selected", choice.querySelector("input").checked))));
