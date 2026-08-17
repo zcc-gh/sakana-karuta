@@ -1,40 +1,10 @@
-// 鱼牌列表。提示数据来自 hints-data.js，不会直接展示鱼名，以免泄题。
-const cards = [
-  { zh: "河豚", ja: "フグ", hintZh: "", hintJa: "" },
-  { zh: "食人鱼", ja: "ピラニア", hintZh: "", hintJa: "" },
-  { zh: "狮鱼", ja: "ブリ", hintZh: "", hintJa: "" },
-  { zh: "虹鳟", ja: "ニジマス", hintZh: "", hintJa: "" },
-  { zh: "褐菖鲉", ja: "カサゴ", hintZh: "", hintJa: "" },
-  { zh: "飞鱼", ja: "トビウオ", hintZh: "", hintJa: "" },
-  { zh: "鯕鳅", ja: "シイラ", hintZh: "", hintJa: "" },
-  { zh: "金枪鱼", ja: "マグロ", hintZh: "", hintJa: "" },
-  { zh: "喜鱼", ja: "キス", hintZh: "", hintJa: "" },
-  { zh: "沙丁鱼", ja: "イワシ", hintZh: "", hintJa: "" },
-  { zh: "山女鱼", ja: "ヤマメ", hintZh: "", hintJa: "" },
-  { zh: "鲑鱼", ja: "サケ", hintZh: "", hintJa: "" },
-  { zh: "斗鱼", ja: "ベタ", hintZh: "", hintJa: "" },
-  { zh: "鲣鱼", ja: "カツオ", hintZh: "", hintJa: "" },
-  { zh: "鲭鱼", ja: "サバ", hintZh: "", hintJa: "" },
-  { zh: "带鱼", ja: "タチウオ", hintZh: "", hintJa: "" },
-  { zh: "魟鱼", ja: "エイ", hintZh: "", hintJa: "" },
-  { zh: "龙鱼", ja: "アロワナ", hintZh: "", hintJa: "" },
-  { zh: "鲷鱼", ja: "タイ", hintZh: "", hintJa: "" },
-  { zh: "大口黑鲈", ja: "ブラックバス", hintZh: "", hintJa: "" },
-  { zh: "石斑鱼", ja: "ハタ", hintZh: "", hintJa: "" },
-  { zh: "竹筴鱼", ja: "アジ", hintZh: "", hintJa: "" },
-  { zh: "香鱼", ja: "アユ", hintZh: "", hintJa: "" },
-  { zh: "黑鲫", ja: "フナ", hintZh: "", hintJa: "" },
-];
-if (typeof cardHints !== "undefined") {
-  cards.forEach((card) => {
-    const hints = cardHints[card.zh];
-    card.hintZh = hints?.zh || [];
-    card.hintJa = hints?.ja || [];
-  });
+function getDeckCards(deckId) {
+  if (typeof decks !== "undefined" && decks[deckId]) return decks[deckId].cards;
+  return [];
 }
 
 const $ = (id) => document.getElementById(id);
-const screens = [$("modeScreen"), $("languageScreen"), $("speedScreen"), $("gameScreen"), $("completeScreen")];
+const screens = [$("deckScreen"), $("modeScreen"), $("languageScreen"), $("speedScreen"), $("gameScreen"), $("completeScreen")];
 const GENDER_NAMES = {
   ja: {
     male: ["hattori", "otoya", "kyota", "kenji", "takeshi", "shinji", "yuuji"],
@@ -68,6 +38,7 @@ if (window.speechSynthesis) {
 
 const state = {
   deck: [],
+  deckId: "basic",
   index: 0,
   mode: "teach",
   language: "zh",
@@ -243,12 +214,13 @@ function advance(token) {
 
 function startGame() {
   stopSpeech();
+  state.deckId = document.querySelector('input[name="deck"]:checked').value;
   state.mode = document.querySelector('input[name="mode"]:checked').value;
   state.language = document.querySelector('input[name="language"]:checked').value;
   state.gender = document.querySelector('input[name="gender"]:checked').value;
   state.interval = Number(document.querySelector('input[name="interval"]:checked').value);
   loadVoices();
-  state.deck = shuffle(cards);
+  state.deck = shuffle(getDeckCards(state.deckId));
   state.index = 0;
   state.hintIndex = 0;
   state.paused = false;
@@ -356,7 +328,7 @@ function endGame() {
   state.countdown = null;
   stopSpeech();
   releaseWakeLock();
-  showScreen($("modeScreen"));
+  showScreen($("deckScreen"));
 }
 
 function updateCountdown() {
@@ -447,7 +419,10 @@ bindRadioHighlight("mode", ".mode-choice");
 bindRadioHighlight("language", ".language-card .choice");
 bindRadioHighlight("gender", ".language-card .choice");
 bindRadioHighlight("interval", ".speed-choice");
+bindRadioHighlight("deck", ".deck-choice");
 
+$("toModeButton").addEventListener("click", () => showScreen($("modeScreen")));
+$("backToDeckButton").addEventListener("click", () => showScreen($("deckScreen")));
 $("toLanguageButton").addEventListener("click", () => showScreen($("languageScreen")));
 $("backToModeButton").addEventListener("click", () => showScreen($("modeScreen")));
 $("toSpeedButton").addEventListener("click", () => showScreen($("speedScreen")));
@@ -495,7 +470,7 @@ $("confirmQuitButton").addEventListener("click", () => {
   endGame();
 });
 
-$("backToSettingsButton").addEventListener("click", () => showScreen($("modeScreen")));
+$("backToSettingsButton").addEventListener("click", () => showScreen($("deckScreen")));
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && !$("gameScreen").classList.contains("hidden")) {

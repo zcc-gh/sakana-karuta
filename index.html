@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#2E6B9E" />
     <title>さかなかるた · 读手</title>
-    <link rel="stylesheet" href="styles.css?v=8" />
+    <link rel="stylesheet" href="styles.css?v=9" />
   </head>
   <body>
     <svg aria-hidden="true" style="display:none">
@@ -17,11 +17,35 @@
     </svg>
 
     <main class="app-shell">
-      <section class="screen" id="modeScreen" aria-labelledby="modeTitle">
+      <section class="screen" id="deckScreen" aria-labelledby="deckTitle">
         <div class="brand">
           <svg class="brand-mark" aria-hidden="true"><use href="#scales3" /></svg>
           <div class="brand-word">さかなかるた<br />読手</div>
         </div>
+        <h1 id="deckTitle">选择牌组</h1>
+        <div class="settings-card">
+          <fieldset>
+            <div class="deck-grid">
+              <label class="choice deck-choice selected">
+                <input type="radio" name="deck" value="basic" checked />
+                <svg class="scale-icon" aria-hidden="true"><use href="#scales3" /></svg>
+                <strong>基本牌组</strong>
+                <span>24 张</span>
+              </label>
+              <label class="choice deck-choice">
+                <input type="radio" name="deck" value="freshwater" />
+                <svg class="scale-icon" aria-hidden="true"><use href="#scales3" /></svg>
+                <strong>淡水鱼</strong>
+                <span>淡水鱼 · 24 张</span>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+        <button class="primary-button" id="toModeButton" type="button">下一步</button>
+        <a class="official-link" href="https://sakanakaruta.theshop.jp" target="_blank" rel="noreferrer">访问官网 <span aria-hidden="true">↗</span></a>
+      </section>
+
+      <section class="screen hidden" id="modeScreen" aria-labelledby="modeTitle">
         <h1 id="modeTitle">选择模式</h1>
         <div class="settings-card">
           <fieldset>
@@ -42,7 +66,7 @@
           </fieldset>
         </div>
         <button class="primary-button" id="toLanguageButton" type="button">下一步</button>
-        <a class="official-link" href="https://sakanakaruta.theshop.jp" target="_blank" rel="noreferrer">访问官网 <span aria-hidden="true">↗</span></a>
+        <button class="text-button back-button" id="backToDeckButton" type="button">返回</button>
       </section>
 
       <section class="screen hidden" id="languageScreen" aria-labelledby="languageTitle">
@@ -155,7 +179,7 @@
       </div>
     </dialog>
 
-    <script src="hints-data.js?v=5"></script>
-    <script src="app.js?v=9"></script>
+    <script src="hints-data.js?v=6"></script>
+    <script src="app.js?v=10"></script>
   </body>
 </html>
